@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lebensziele Fragebogen</title>
+    <style>
+        /* Grundlegendes Styling */
+        body {
+            font-family: 'San Francisco', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            font-size: 18px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Container für den Fragebogen */
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            width: 350px;
+            text-align: center;
+            opacity: 0;
+            animation: fadeIn 1s forwards;
+        }
+
+        /* Fade-In-Animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        h2 {
+            font-size: 24px;
+            color: #1c1c1c;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        .question {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        /* Counter Styling */
+        .counter {
+            font-size: 14px;
+            color: #888;
+            margin-top: 10px;
+        }
+
+        /* Textbox Styling */
+        .textbox {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 30px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background-color: #f7f7f7;
+            color: #333;
+            font-size: 16px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease, background-color 0.3s ease;
+        }
+
+        .textbox:focus {
+            border-color: #1d72b8;
+            background-color: #eaf3fe;
+            outline: none;
+        }
+
+        /* Button Styling */
+        .next-button, .skip-button, .restart-button {
+            background-color: #1d72b8;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 18px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        /* Grauer Skip-Button und Erneut beginnen-Button */
+        .skip-button, .restart-button {
+            background-color: #888;
+        }
+
+        /* Hover-Effekte für Buttons */
+        .next-button:hover, .skip-button:hover, .restart-button:hover {
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 400px) {
+            .container {
+                width: 90%;
+            }
+
+            h2 {
+                font-size: 22px;
+            }
+
+            .question {
+                font-size: 16px;
+            }
+
+            .textbox {
+                font-size: 14px;
+                padding: 10px;
+            }
+
+            .next-button, .skip-button, .restart-button {
+                font-size: 16px;
+                padding: 10px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="main-container" class="container">
+        <h2>Lebensziele</h2>
+        <div id="question-container">
+            <div id="question" class="question"></div>
+            <input type="text" id="answer" class="textbox" placeholder="Antwort hier eingeben">
+            <button id="next-button" class="next-button" onclick="nextQuestion()">Nächste Frage</button>
+            <button id="skip-button" class="skip-button" onclick="skipQuestion()">Frage überspringen</button>
+            <button id="restart-button" class="restart-button" onclick="restartQuiz()">Erneut beginnen</button>
+            <div id="counter" class="counter"></div> <!-- Counter für die Fragen -->
+        </div>
+    </div>
+
+    <script>
+        // Die neuen Fragen zu Lebenszielen
+        const questions = [
+            "Was wäre für mich der ultimative Erfolg im Leben?",
+            "Welche Werte sind mir so wichtig, dass ich dafür alles tun würde?",
+            "Was würde mich im Leben wirklich glücklich machen?",
+            "Wie möchte ich in 10 Jahren über mein Leben denken?",
+            "Welche Fähigkeiten oder Talente möchte ich am meisten entwickeln?",
+            "Was will ich der Welt hinterlassen, wenn ich gehe?",
+            "Mit welchem Gefühl möchte ich jeden Tag aufwachen?",
+            "Was ist der größte Traum, den ich mir erfüllen möchte?",
+            "Was hindert mich derzeit daran, meine Ziele zu erreichen?",
+            "Was bin ich bereit, aufzugeben, um meine Ziele zu erreichen?",
+            "Welche Beziehungen möchte ich in meinem Leben stärken oder aufbauen?",
+            "Welche Art von Arbeit oder Projekten möchte ich mein Leben widmen?",
+            "Was muss ich lernen oder erfahren, um mich wirklich erfüllt zu fühlen?",
+            "Was ist meine tiefste Angst und wie könnte ich sie überwinden, um mein Ziel zu erreichen?",
+            "Wie möchte ich, dass andere mich in Erinnerung behalten?"
+        ];
+
+        let currentQuestionIndex = 0;
+        let answers = [];
+        let isFinished = false; // Variable, die überprüft, ob der Benutzer fertig ist
+
+        // Zeige die aktuelle Frage an
+        function showQuestion() {
+            const questionElement = document.getElementById("question");
+            questionElement.textContent = questions[currentQuestionIndex];
+            document.getElementById("answer").value = '';  // Textbox leeren
+            document.getElementById("counter").textContent = `${currentQuestionIndex + 1}/${questions.length}`;  // Frage counter
+
+            const nextButton = document.getElementById("next-button");
+            const skipButton = document.getElementById("skip-button");
+            const restartButton = document.getElementById("restart-button");
+
+            if (currentQuestionIndex === questions.length - 1) {
+                nextButton.textContent = "Antworten herunterladen"; // Letzte Frage, Button umbenennen
+                skipButton.style.display = 'inline-block'; // „Frage überspringen“ bei der letzten Frage anzeigen
+            } else {
+                nextButton.textContent = "Nächste Frage";
+                skipButton.style.display = 'inline-block'; // Skip-Button anzeigen
+            }
+        }
+
+        // Wenn die "Nächste Frage"-Schaltfläche geklickt wird
+        function nextQuestion() {
+            const answer = document.getElementById("answer").value;
+            if (answer.trim() !== "") {
+                answers.push(answer);
+                currentQuestionIndex++;
+
+                if (currentQuestionIndex < questions.length) {
+                    showQuestion();
+                } else {
+                    downloadAnswers(); // Antworten sofort herunterladen, wenn alle Fragen beantwortet sind
+                    isFinished = true;
+                }
+            } else {
+                alert("Bitte eine Antwort eingeben.");
+            }
+        }
+
+        // Wenn die "Frage überspringen"-Schaltfläche geklickt wird
+        function skipQuestion() {
+            const answer = document.getElementById("answer").value;
+            if (answer.trim() !== "") {
+                answers.push(answer);
+            } else {
+                answers.push(""); // Leere Antwort für übersprungene Frage speichern
+            }
+
+            currentQuestionIndex++;
+
+            if (currentQuestionIndex < questions.length) {
+                showQuestion();
+            } else {
+                downloadAnswers(); // Antworten sofort herunterladen, wenn alle Fragen beantwortet sind oder übersprungen wurden
+                isFinished = true;
+            }
+        }
+
+        // Erstelle eine .txt-Datei und starte den Download
+        function downloadAnswers() {
+            let fileContent = "";
+            for (let i = 0; i < answers.length; i++) {
+                fileContent += `${questions[i]}\n${answers[i]}\n\n`;
+            }
+
+            const blob = new Blob([fileContent], { type: "text/plain" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "lebensziele_antworten.txt";
+            link.click();
+        }
+
+        // Fragebogen zurücksetzen und erneut beginnen
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            answers = [];
+            isFinished = false; // Fortschritt zurücksetzen
+            showQuestion();
+        }
+
+        // Starte die erste Frage
+        showQuestion();
+    </script>
+</body>
+</html>
